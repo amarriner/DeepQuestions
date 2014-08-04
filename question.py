@@ -14,8 +14,14 @@ import random
 import re
 import sys
 
+
+# List of potential questions to pull from 
+QUESTIONS = ['If you <VBN> [A] <NN>, how would you <VB> it?']
+
+# Used to replace parts of speech within a string 
 TAG_PATTERN = re.compile(r'(<.*?>)')
 
+# Parts of speech dict with various information about each, used in processing questions
 POS = {
          'NN' : {'name'    : 'noun',
                  'lexnames': [
@@ -40,12 +46,15 @@ POS = {
                 },
       }
 
+# Just a list of vowels...
 VOWELS = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U']
 
 
 def build_word_lists():
    """Run through the POS tags and get lists of words for each"""
 
+   # Grab a cached version if possible, otherwise load words from the brown corpus with the given tag into the 
+   # appropriate POS dict entry
    for tag in POS.keys():
       filename = 'pos_' + tag + '.cache'
       if os.path.isfile(filename):
@@ -58,6 +67,8 @@ def build_word_lists():
 def get_random_word(t):
    """Return a random word from a set filtering on lexname category if necessary"""
 
+   # If there are entries in the lexnames list for the given POS tag, limit results to that,
+   # otherwise just return a random word for that POS
    word = None
    if len(POS[t]['lexnames']):
 
@@ -78,6 +89,7 @@ def get_random_word(t):
 def replace_articles(question):
    """Replaces [A] placeholder with 'a' or 'an'"""
 
+   # Find the placeholder if it exists and check the word after that to determine whether to return a or an
    if question.split(' ').index('[A]') >= 0:
       if question.split(' ')[question.split(' ').index('[A]') + 1][:1] in VOWELS:
          question = question.replace('[A]', 'an')
@@ -95,9 +107,13 @@ def replace_pos(question):
 
       try:
 
+         # Get a new iterator for the regex pattern. No terribly efficient, but since we're potentially
+         # changing the length and indicies of the string on each pass, we have to get a new one every time
          tag = TAG_PATTERN.finditer(question).next()
          t = tag.group().replace('<', '').replace('>', '')
          if t in POS.keys():
+
+            # If the POS tag we found exists in the POS tag, strip out the placeholder and replace it with a random word
             word = get_random_word(t)
             (start, end) = tag.span()
             question =  question[:start] + word + question[end:]
@@ -112,7 +128,8 @@ def main():
    """Main entry point"""
 
    build_word_lists()
-   print replace_articles(replace_pos('If you <VBN> [A] <NN>, how would you <VB> it?'))
+
+   print replace_articles(replace_pos(random.choice(QUESTIONS)))
       
 
 if __name__ == "__main__":
