@@ -19,14 +19,19 @@ import sys
 QUESTIONS = [
                'If <NN> <VBZ>, can <PN> <VB> it?',
                'If you <VBN> <NN>, how would you <VB> it?',
-               'When would you <VB> <JJ?50> <NN>?',
                'How does one <VB> <NN> with <NNX> <NN>?',
                'How does one <VB> <NN> with <JJ?25> <NN>?',
                'Why does <PN> <JJ?10> <VB>?',
                'When <VBG> <NN>, who <VBZ> it?',
+               'When would you <VB> <JJ?50> <NN>?',
                'Who <VBZ> the <AP> <NNS>?',
                'Who is <RB?25> <VBG> the <NNS>?',
+               'Is <JJ?50> <NN> <RBR> than <JJ?50> <NN>?',
+               'Does <NNX?75> <NN> <VB> <NN>?',
+               'What if <NN> <VBZ> <IN> <NN>?',
+               'What does <NNX?50> <NN> <VB> with <NN>?',
             ]
+
 # Working directory
 PWD = '/home/amarriner/python/question/'
 
@@ -142,7 +147,8 @@ def main():
 
    question = random.choice(QUESTIONS)
    print question
-   print replace_pos(question)
+   question = replace_pos(question)
+   print question
 
 
 if __name__ == "__main__":
