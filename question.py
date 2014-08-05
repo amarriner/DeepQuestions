@@ -6,6 +6,7 @@ from pattern.en import conjugate, referenced, singularize, wordnet
 from pos import POS
 
 import cache_object
+import keys
 import nltk
 import os
 import pattern.en
@@ -13,6 +14,7 @@ import random
 import re
 import string
 import sys
+import twitter
 
 
 # List of potential questions to pull from
@@ -149,6 +151,12 @@ def main():
    print question
    question = replace_pos(question)
    print question
+
+   # Connect to Twitter
+   api = twitter.Api(keys.consumer_key, keys.consumer_secret, keys.access_token, keys.access_token_secret)
+
+   # Post tweet text and image
+   status = api.PostUpdate(question)
 
 
 if __name__ == "__main__":
