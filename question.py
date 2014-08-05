@@ -19,13 +19,13 @@ import sys
 QUESTIONS = [
                'If <NN> <VBZ>, can <PN> <VB> it?',
                'If you <VBN> <NN>, how would you <VB> it?',
-               'When would you <VB> <NN>?',
+               'When would you <VB> <JJ?50> <NN>?',
                'How does one <VB> <NN> with <NNX> <NN>?',
-               'How does one <VB> <NN> with <NN>?',
-               'Why does <PN> <VB>?',
+               'How does one <VB> <NN> with <JJ?25> <NN>?',
+               'Why does <PN> <JJ?10> <VB>?',
                'When <VBG> <NN>, who <VBZ> it?',
                'Who <VBZ> the <AP> <NNS>?',
-               'Who is <VBG> the <NNS>?',
+               'Who is <RB?25> <VBG> the <NNS>?',
             ]
 # Working directory
 PWD = '/home/amarriner/python/question/'
@@ -91,7 +91,7 @@ def get_singular(word):
 def replace_pos(question):
    """Replaces tags in a question with a random word of the same POS type"""
 
-   tokens = nltk.word_tokenize(re.sub(TAG_PATTERN, '\g<tag>', question))
+   tokens = nltk.word_tokenize(re.sub(TAG_PATTERN, strip_tag, question))
    question = []
 
    last = None
@@ -118,6 +118,21 @@ def replace_pos(question):
          last = None
 
    return ' '.join(question)
+
+
+def strip_tag(match):
+   """Returns the stripped version of a tag for tokenization, sometimes erases it entirely"""
+
+   str = match.group('tag')
+   split = str.split('?')
+   if len(split) == 2:
+      rnd = random.choice(range(1,100))
+      if rnd < int(split[1]):
+         str = split[0]
+      else:
+         str = ''
+   
+   return str
 
 
 def main():
