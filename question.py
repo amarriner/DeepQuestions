@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-"""Script to ask silly questions?"""
+"""Script to ask random silly/nonsense questions"""
+
 from nltk.corpus import brown
 from pattern.en import conjugate, referenced, singularize, wordnet
 from pos import POS
@@ -32,6 +33,7 @@ QUESTIONS = [
                'Does <NNX?75> <NN> <VB> <NN>?',
                'What if <NN> <VBZ> <IN> <NN>?',
                'What does <NNX?50> <NN> <VB> with <NN>?',
+               'Why do <NNS> <VB>?',
             ]
 
 # Working directory
@@ -83,6 +85,7 @@ def get_random_word(t, ref=False):
    else:
       word = random.choice(POS[t]['words'])[0]
 
+   # If required, prefix with an article 
    if ref:
       word = referenced(word)
 
@@ -98,12 +101,15 @@ def get_singular(word):
 def replace_pos(question):
    """Replaces tags in a question with a random word of the same POS type"""
 
+   # Substitute the tag marker (e.g., <NN>) with the tag itself, or blank if randomly determined
+   # Then tokenize into a list
    tokens = nltk.word_tokenize(re.sub(TAG_PATTERN, strip_tag, question))
    question = []
 
    last = None
    for t in tokens:
 
+      # If this token is a POS we can replace, replace it
       if t in POS.keys():
 
          ref = POS[t]['ref']
@@ -115,6 +121,7 @@ def replace_pos(question):
          question.append(get_random_word(t, ref))
          last = t
 
+      # Otherwise just use the word itself, and make sure punctuation strips whitespace
       else:
 
          if t in string.punctuation:
@@ -132,9 +139,11 @@ def strip_tag(match):
 
    str = match.group('tag')
    split = str.split('?')
+
+   # If there was a ? in the tag, randomly determine whether the tag should still be included
+   # based on the integer value after the ?
    if len(split) == 2:
-      rnd = random.choice(range(1,100))
-      if rnd < int(split[1]):
+      if random.choice(range(1,100)) < int(split[1]):
          str = split[0]
       else:
          str = ''
@@ -155,7 +164,7 @@ def main():
    # Connect to Twitter
    api = twitter.Api(keys.consumer_key, keys.consumer_secret, keys.access_token, keys.access_token_secret)
 
-   # Post tweet text and image
+   # Tweet
    status = api.PostUpdate(question)
 
 
