@@ -62,10 +62,7 @@ def get_random_word(t, ref=False):
       while lexname not in POS[t]['lexnames']:
          word = random.choice(POS[t]['words'])[0]
 
-         if t == 'VBG':
-            synset = wordnet.synsets(conjugate(word), pos=t)
-         else:
-            synset = wordnet.synsets(get_singular(word), pos=t)
+         synset = wordnet.synsets(get_singular(word), pos=t)
 
          if synset:
             lexname = synset[0].lexname
@@ -82,7 +79,7 @@ def get_random_word(t, ref=False):
 def get_singular(word):
    """Further refinement of the pattern.en.singularize function"""
 
-   return singularize(word).replace('\'', '')
+   return conjugate(singularize(word).replace('\'', ''))
 
 
 def replace_pos(question):
