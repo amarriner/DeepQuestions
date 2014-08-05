@@ -18,7 +18,12 @@ POS = {
                              ],
                  'ref'     : True,
                 },
-         'NN$': {'name'    : 'noun, singular, common, genitive',
+         # At the moment, I'm using nltk.word_tokenizer to split the question up which breaks on 
+         # special characters, so I don't want to use special characters in the tag name. 
+         # However, in order to look up the words associated with a tag, I need to have the
+         # actual tag name available as well otherwise things break
+         'NNX': {'name'    : 'noun, singular, common, genitive',
+                 'tag'     : 'NN$',
                  'lexnames': [
                                 'noun.animal',
                                 'noun.artifact',

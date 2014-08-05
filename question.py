@@ -11,6 +11,7 @@ import os
 import pattern.en
 import random
 import re
+import string
 import sys
 
 
@@ -19,7 +20,7 @@ QUESTIONS = [
                'If <NN> <VBZ>, can <PN> <VB> it?',
                'If you <VBN> <NN>, how would you <VB> it?',
                'When would you <VB> <NN>?',
-               'How does one <VB> <NN> with <NN$|NN>?',
+               'How does one <VB> <NN> with <NNX> <NN>?',
                'How does one <VB> <NN> with <NN>?',
                'Why does <PN> <VB>?',
                'When <VBG> <NN>, who <VBZ> it?',
@@ -30,7 +31,7 @@ QUESTIONS = [
 PWD = '/home/amarriner/python/question/'
 
 # Used to replace parts of speech within a string
-TAG_PATTERN = re.compile(r'(<.*?>)')
+TAG_PATTERN = re.compile(r'<(?P<tag>.*?)>')
 
 # Just a list of vowels...
 VOWELS = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U']
@@ -42,11 +43,16 @@ def build_word_lists():
    # Grab a cached version if possible, otherwise load words from the brown corpus with the given tag into the
    # appropriate POS dict entry
    for tag in POS.keys():
-      filename = PWD + 'cache/pos_' + tag + '.cache'
+
+      nltk_tag = tag
+      if 'tag' in POS[tag].keys():
+         nltk_tag = POS[tag]['tag']
+
+      filename = PWD + 'cache/pos_' + nltk_tag + '.cache'
       if os.path.isfile(filename):
          POS[tag]['words'] = cache_object.load(filename)
       else:
-         POS[tag]['words'] = [w for w in brown.tagged_words() if w[1] == tag]
+         POS[tag]['words'] = [w for w in brown.tagged_words() if w[1] == nltk_tag]
          cache_object.dump(POS[tag]['words'], filename)
 
 
@@ -85,43 +91,33 @@ def get_singular(word):
 def replace_pos(question):
    """Replaces tags in a question with a random word of the same POS type"""
 
-   done = False
-   while not done:
+   tokens = nltk.word_tokenize(re.sub(TAG_PATTERN, '\g<tag>', question))
+   question = []
 
-      try:
+   last = None
+   for t in tokens:
 
-         # Get a new iterator for the regex pattern. No terribly efficient, but since we're potentially
-         # changing the length and indicies of the string on each pass, we have to get a new one every time
+      if t in POS.keys():
+
+         ref = POS[t]['ref']
+
+         if last:
+            if POS[t]['ref'] and POS[last]['ref']:
+               ref = False
+
+         question.append(get_random_word(t, ref))
+         last = t
+
+      else:
+
+         if t in string.punctuation:
+            question[-1] = question[-1] + t
+         else:
+            question.append(t)
+
          last = None
-         replace = ''
-         tag = TAG_PATTERN.finditer(question).next()
-         (start, end) = tag.span()
-         for t in tag.group().replace('<', '').replace('>', '').split('|'):
 
-            # If the POS tag we found exists in the POS tag, strip out the placeholder and replace it with a random word
-            if t in POS.keys():
-
-               # ref determines whether to place an article before the word or not
-               ref = POS[t]['ref']
-               if last:
-                  if POS[t]['ref'] and POS[last]['ref']:
-                     ref = False
-
-               word = get_random_word(t, ref)
-
-               if replace:
-                  replace = replace + ' '
-
-               replace = replace + word
-
-            last = t
-
-         question = question[:start] + replace + question[end:]
-
-      except StopIteration, e:
-         done = True
-
-   return question
+   return ' '.join(question)
 
 
 def main():
